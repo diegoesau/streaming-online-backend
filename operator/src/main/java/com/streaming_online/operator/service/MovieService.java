@@ -1,0 +1,40 @@
+/* Movie service interface 
+ * Defines methods for the app operations
+*/
+
+package com.streaming_online.operator.service;
+
+import com.streaming_online.operator.model.Movie;
+import com.streaming_online.operator.model.MovieList;
+import com.streaming_online.operator.model.MovieList.MovieState;
+
+import java.util.List;
+
+public interface MovieService {
+
+    /* App Operations */
+
+    List<Movie> getAllMovies();
+
+    List<Movie> getMoviesByGenre(String genre);
+
+    Movie getMovie(String imdbID);
+
+    /* User Operations */
+
+    List<Movie> getMovieList(String userID, MovieState state);
+
+    MovieList updateMovieState(String userID, String imdbID, String newState);
+
+    MovieList saveMovieToMyList(MovieList movieList);
+
+    Boolean deleteMovieFromMyList(String userID, String imdbID);
+
+    /* Admin Operations */
+
+    Movie addMovie(Movie movie);
+
+    Movie updateMovie(String imdbID, java.util.Map<String, Object> updates);
+
+    Boolean deleteMovie(String imdbID);
+}
