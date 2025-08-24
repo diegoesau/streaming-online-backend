@@ -1,0 +1,15 @@
+server:
+  port: 8761 # Port of the Eureka microservice
+
+spring:
+  application:
+    name: eureka-server
+    
+eureka:
+  client:
+    register-with-eureka: false # Eureka Microservice will not register itself
+    fetch-registry: false # Using just one Eureka server does not require fetching the registry
+
+instance:
+  hostname: ${EUREKA_HOST:localhost}
+
