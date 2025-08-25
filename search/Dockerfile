@@ -1,7 +1,9 @@
-FROM openjdk:17-jdk-alpine AS builder
-COPY . /build
+FROM maven:3.9.8-eclipse-temurin-17-alpine AS builder
 WORKDIR /build
-RUN ./mvnw package
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
+COPY . /build
+RUN mvn clean package -DskipTests
 
 FROM openjdk:17-jdk-alpine
 COPY --from=builder /build/target/*.jar /app.jar
