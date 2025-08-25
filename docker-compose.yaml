@@ -1,0 +1,99 @@
+---
+services:
+  cantoral:
+    build: streaming-online/
+    depends_on:
+      service-a:
+        condition: service_started
+        restart: true
+    volumes:
+      - ./cantoral/:/app
+    networks:
+      - backend
+    ports:
+      - "3000:3000"
+    container_name: "cantoral"
+
+  eureka-server:
+    build: eureka-server/
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - "test $(netstat -nat | grep LISTEN | grep 8761 | wc -l) -eq 1"
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      timeout: 10s
+    networks:
+      - backend
+    ports:
+      - "8761:8761"
+    container_name: "eureka-server"
+
+  gateway:
+    build: gateway/
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+        restart: true
+    networks:
+      - backend
+    links:
+      - eureka-server
+      - cantoral
+      - service-a
+      - service-b
+    ports:
+      - "8762:8762"
+    container_name: "gateway"
+
+  service-a:
+    build: operator/
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+        restart: true
+    networks:
+      - backend
+    links:
+      - eureka-server
+      - db
+    ports:
+      - "8081:8081"
+    container_name: "service-a"
+
+  service-b:
+    build: search/
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+        restart: true
+    networks:
+      - backend
+    links:
+      - eureka-server
+      - db
+    ports:
+      - "8082:8082"
+    container_name: "service-b"
+
+  db:
+    image: mariadb:10.5.17
+    volumes:
+      - db_streaming:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_bin
+
+networks:
+  backend:
+    internal: false
+
+volumes:
+  db_streaming:
