@@ -1,0 +1,3 @@
+[submodule "streaming-online"]
+	path = streaming-online
+	url = https://github.com/diegoesau/streaming-online
