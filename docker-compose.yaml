@@ -1,18 +1,16 @@
 ---
 services:
-  cantoral:
+  frontend:
     build: streaming-online/
     depends_on:
       service-a:
         condition: service_started
         restart: true
-    volumes:
-      - ./cantoral/:/app
     networks:
       - backend
     ports:
       - "3000:3000"
-    container_name: "cantoral"
+    container_name: "frontend"
 
   eureka-server:
     build: eureka-server/
@@ -43,7 +41,7 @@ services:
       - backend
     links:
       - eureka-server
-      - cantoral
+      - frontend
       - service-a
       - service-b
     ports:
