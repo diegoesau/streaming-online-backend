@@ -21,9 +21,11 @@ import com.streaming_online.operator.model.MovieCollection;
 import com.streaming_online.operator.model.MovieList;
 import com.streaming_online.operator.model.MovieList.MovieState;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController // Bean REST Controller type
 @RequiredArgsConstructor
@@ -59,6 +61,12 @@ public class MovieController {
         }
     }
 
+    @GetMapping("/movies/genres")
+    public ResponseEntity<List<MovieCollection>> getAllMoviesByGenres() {
+        List<MovieCollection> collections = movieService.getAllMoviesGroupedByGenre();
+        return ResponseEntity.ok(collections);
+    }
+
     @GetMapping("/movies/{imdbID}")
     public ResponseEntity<Movie> getMovie(@PathVariable String imdbID) {
         Movie movie = movieService.getMovie(imdbID);
@@ -71,19 +79,19 @@ public class MovieController {
 
     /* User Operations */
 
-    @GetMapping("/movies/mylist/{userID}/{state}")
-    public ResponseEntity<MovieCollection> getMovieList(@PathVariable String userID, @PathVariable MovieState state) {
-        List<Movie> movies = movieService.getMovieList(userID, state);
-
-        if (movies != null && !movies.isEmpty()) {
-            MovieCollection movieCollection = MovieCollection.builder()
-                    .name(state.toString())
-                    .movies(movies)
-                    .build();
-            return ResponseEntity.ok(movieCollection);
-        } else {
-            return ResponseEntity.ok(null);
-        }
+    @GetMapping("/movies/mylist/{userID}")
+    public ResponseEntity<List<MovieCollection>> getAllMovieLists(@PathVariable String userID) {
+        List<MovieCollection> collections = Arrays.stream(MovieState.values())
+                .map(state -> {
+                    List<Movie> movies = movieService.getMovieList(userID, state);
+                    return MovieCollection.builder()
+                            .name(state.toString())
+                            .movies(movies)
+                            .build();
+                })
+                .collect(Collectors.toList());
+    
+        return ResponseEntity.ok(collections);
     }
 
     @PatchMapping("/movies/mylist/{userID}/{imdbID}")
