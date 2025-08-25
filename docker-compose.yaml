@@ -36,6 +36,9 @@ services:
       eureka-server:
         condition: service_healthy
         restart: true
+    environment:
+      EUREKA_SERVER: ${EUREKA_SERVER}
+      EUREKA_PORT: ${EUREKA_PORT}
     networks:
       - backend
     links:
@@ -53,6 +56,9 @@ services:
       eureka-server:
         condition: service_healthy
         restart: true
+    environment:
+      EUREKA_SERVER: ${EUREKA_SERVER}
+      EUREKA_PORT: ${EUREKA_PORT}
     networks:
       - backend
     links:
@@ -68,6 +74,12 @@ services:
       eureka-server:
         condition: service_healthy
         restart: true
+    environment:
+      ELASTICSEARCH_URI: ${ELASTICSEARCH_URI}
+      ELASTICSEARCH_USERNAME: ${ELASTICSEARCH_USERNAME}
+      ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD}
+      EUREKA_SERVER: ${EUREKA_SERVER}
+      EUREKA_PORT: ${EUREKA_PORT}
     networks:
       - backend
     links:
