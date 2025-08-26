@@ -57,6 +57,9 @@ services:
     environment:
       EUREKA_SERVER: ${EUREKA_SERVER}
       EUREKA_PORT: ${EUREKA_PORT}
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     networks:
       - backend
     links:
@@ -78,6 +81,9 @@ services:
       ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD}
       EUREKA_SERVER: ${EUREKA_SERVER}
       EUREKA_PORT: ${EUREKA_PORT}
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     networks:
       - backend
     links:
