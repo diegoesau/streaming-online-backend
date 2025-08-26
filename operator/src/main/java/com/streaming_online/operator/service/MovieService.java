@@ -5,6 +5,7 @@
 package com.streaming_online.operator.service;
 
 import com.streaming_online.operator.model.Movie;
+import com.streaming_online.operator.model.MovieCollection;
 import com.streaming_online.operator.model.MovieList;
 import com.streaming_online.operator.model.MovieList.MovieState;
 
@@ -17,6 +18,8 @@ public interface MovieService {
     List<Movie> getAllMovies();
 
     List<Movie> getMoviesByGenre(String genre);
+
+    List<MovieCollection> getAllMoviesGroupedByGenre();
 
     Movie getMovie(String imdbID);
 

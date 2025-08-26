@@ -43,6 +43,7 @@ cloud:
     default-filters:
       - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
 
+
 server:
   port: 8762
 

@@ -4,6 +4,7 @@
 package com.streaming_online.operator.service;
 
 import com.streaming_online.operator.model.Movie;
+import com.streaming_online.operator.model.MovieCollection;
 import com.streaming_online.operator.model.MovieList;
 import com.streaming_online.operator.model.MovieList.MovieState;
 import com.streaming_online.operator.repository.MovieRepository;
@@ -14,8 +15,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +41,39 @@ public class MovieServiceImpl implements MovieService {
         List<Movie> movies = movieRepository.findByGenreContaining(genre);
         return movies.isEmpty() ? Collections.emptyList() : movies;
     }
+
+    @Override
+    public List<MovieCollection> getAllMoviesGroupedByGenre() {
+        List<Movie> allMovies = movieRepository.findAll();
+        Map<String, Set<Movie>> genreMap = new HashMap<>();
+    
+        for (Movie movie : allMovies) {
+            if (movie.getGenre() != null) {
+                String[] genres = movie.getGenre().split(",");
+                for (String g : genres) {
+                    String genre = g.trim();
+                    genreMap
+                        .computeIfAbsent(genre, k -> new LinkedHashSet<>())
+                        .add(movie);
+                }
+            }
+        }
+    
+        return genreMap.entrySet().stream()
+                .filter(entry -> entry.getValue().size() >= 6) // at least 6 movies
+                .sorted((e1, e2) -> Integer.compare(e2.getValue().size(), e1.getValue().size())) // sort by popularity
+                .map(entry -> {
+                    List<Movie> movieList = new ArrayList<>(entry.getValue());
+                    Collections.shuffle(movieList);
+                    
+                    return MovieCollection.builder()
+                            .name(entry.getKey())
+                            .movies(movieList.stream().limit(10).toList()) // max 10
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
 
     @Override
     public Movie getMovie(String imdbID) {
