@@ -10,6 +10,7 @@ import com.streaming_online.operator.model.MovieList;
 import com.streaming_online.operator.model.MovieList.MovieState;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface MovieService {
 
@@ -27,11 +28,13 @@ public interface MovieService {
 
     List<Movie> getMovieList(String userID, MovieState state);
 
-    MovieList updateMovieState(String userID, String imdbID, String newState);
+    Optional<MovieList> updateMovieState(String userID, String imdbID, String State);
 
     MovieList saveMovieToMyList(MovieList movieList);
 
     Boolean deleteMovieFromMyList(String userID, String imdbID);
+
+    String getMovieState(String userID, String imdbID);
 
     /* Admin Operations */
 

@@ -23,9 +23,11 @@ import com.streaming_online.operator.model.MovieList.MovieState;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.Optional;
 
 @RestController // Bean REST Controller type
 @RequiredArgsConstructor
@@ -94,12 +96,18 @@ public class MovieController {
         return ResponseEntity.ok(collections);
     }
 
-    @PatchMapping("/movies/mylist/{userID}/{imdbID}")
-    public ResponseEntity<MovieList> updateMovieState(@PathVariable String userID, @PathVariable String imdbID, @RequestBody Map<String, String> request) {
-        String newState = request.get("state");
-        MovieList updatedMovie = movieService.updateMovieState(userID, imdbID, newState);
-        return ResponseEntity.ok(updatedMovie);
-    }
+    @PatchMapping("/movies/mylist/{userID}/{imdbID}/{state}")
+    public ResponseEntity<?> updateMovieState(
+            @PathVariable String userID,
+            @PathVariable String imdbID,
+            @PathVariable String state) {
+    
+        Optional<MovieList> result = movieService.updateMovieState(userID, imdbID, state);
+    
+        return result
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }   
 
     @PutMapping("/movies/mylist")
     public ResponseEntity<MovieList> saveMovieToMyList(@RequestBody MovieList movieList) {
@@ -111,6 +119,18 @@ public class MovieController {
     public ResponseEntity<Boolean> deleteMovieFromMyList(@PathVariable String userID, @PathVariable String imdbID) {
         Boolean deleted = movieService.deleteMovieFromMyList(userID, imdbID);
         return ResponseEntity.ok(deleted);
+    }
+
+    @GetMapping("/movies/state/{userId}/{imdbId}")
+    public ResponseEntity<Map<String, String>> getMovieState(
+            @PathVariable String userId,
+            @PathVariable String imdbId) {
+    
+        String state = movieService.getMovieState(userId, imdbId);
+        Map<String, String> res = new HashMap<>();
+        res.put("state", state != null ? state : "NONE");
+    
+        return ResponseEntity.ok(res);
     }
 
     /* Admin Operations */
