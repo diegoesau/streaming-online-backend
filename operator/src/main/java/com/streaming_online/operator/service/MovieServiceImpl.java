@@ -12,6 +12,7 @@ import com.streaming_online.operator.repository.MovieListRepository;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -94,27 +96,37 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    public MovieList updateMovieState(String userID, String imdbID, String newState) {
-        MovieList movieList = movieListRepository.findByUserIDAndImdbID(userID, imdbID)
-            .orElseThrow(() -> new RuntimeException("Movie not found in list"));
-
-        try {
-            MovieState state = MovieState.valueOf(newState.toUpperCase());
-            if (movieList.getState() == MovieState.SAVED && (state == MovieState.PURCHASED || state == MovieState.RENTED)) {
-                movieList.setState(state);
-            }
-            else if (movieList.getState() == MovieState.RENTED && state == MovieState.PURCHASED) {
-                movieList.setState(state);
-            } else if (movieList.getState() == state) {
-                // No state change
-            } else {
-                throw new RuntimeException("Invalid state transition from " + movieList.getState() + " to " + state);
-            }
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Invalid state: " + newState);
+    @Transactional
+    public Optional<MovieList> updateMovieState(String userID, String imdbID, String newState) {
+        if (newState == null) throw new RuntimeException("state is required");
+    
+        if ("NONE".equalsIgnoreCase(newState)) {
+            movieListRepository.findByUserIDAndImdbID(userID, imdbID)
+                .ifPresent(movieListRepository::delete);
+            return Optional.empty(); // NONE => frontend interpreta como null
         }
-        
-        return movieListRepository.save(movieList);
+    
+        // Validar que la movie existe en catálogo
+        movieRepository.findByImdbID(imdbID)
+            .orElseThrow(() -> new RuntimeException("Movie not found with imdbID: " + imdbID));
+    
+        // Convertir a MovieState
+        MovieState target;
+        try {
+            target = MovieState.valueOf(newState.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid movie state: " + newState);
+        }
+    
+        // Buscar o crear registro en la lista del usuario
+        MovieList entity = movieListRepository.findByUserIDAndImdbID(userID, imdbID)
+            .orElseGet(() -> MovieList.builder()
+                .userID(userID)
+                .imdbID(imdbID)
+                .build());
+    
+        entity.setState(target);
+        return Optional.of(movieListRepository.save(entity));
     }
 
     @Override
@@ -144,6 +156,14 @@ public class MovieServiceImpl implements MovieService {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public String getMovieState(String userID, String imdbID) {
+        MovieState state = movieListRepository.findByUserIDAndImdbID(userID, imdbID)
+            .map(MovieList::getState)
+            .orElse(null);
+        return state != null ? state.toString() : "NONE";
     }
 
     /* Admin Operations */
