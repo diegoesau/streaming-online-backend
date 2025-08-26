@@ -1,38 +1,57 @@
 spring:
   application:
     name: gateway
-  
-  cloud:
-    gateway:
-      server:
-        webflux:
-          discovery:
-            locator:
-              enabled: true
-              lower-case-service-id: true
-          globalcors:
-            cors-configurations:
-              '[/**]':
-                allowedOrigins: "http://localhost:3000"
-                allowedHeaders: "*"
-                allowedMethods:
-                  - GET
-                  - POST
-                  - PUT
-                  - DELETE
-                  - PATCH
-      default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+cloud:
+  gateway:
+    routes:
+      - id: frontend
+        uri: http://frontend:3000
+        predicates:
+          - Path=/
+        filters:
+          - Logging
+      - id: servicio-a
+        uri: http://service-a:8081
+        predicates:
+          - Path=/api
+        filters:
+          - Logging
+      - id: servicio-b
+        uri: http://service-b:8082
+        predicates:
+          - Path=/bpi
+        filters:
+          - Logging
+    server:
+      webflux:
+        discovery:
+          locator:
+            enabled: true
+            lower-case-service-id: true
+        globalcors:
+          cors-configurations:
+            "[/**]":
+              allowedOrigins: ${ALLOWED_ORIGINS:*}
+              allowedHeaders: "*"
+              allowedMethods:
+                - GET
+                - POST
+                - PUT
+                - DELETE
+                - PATCH
+    default-filters:
+      - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
 
 server:
   port: 8762
-        
+
 eureka:
-  instance:
-    preferIpAddress: true
-    hostname: ${HOSTNAME:localhost}
   client:
+    serviceUrl:
+      defaultZone: http://${EUREKA_SERVER:localhost}:${EUREKA_PORT:8761}/eureka/
     registerWithEureka: true
     fetchRegistry: true
-    serviceUrl:
-      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+  instance:
+    preferIpAddress: true
